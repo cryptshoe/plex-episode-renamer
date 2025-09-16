@@ -1,4 +1,5 @@
 import os
+import re
 from plexapi.server import PlexServer
 
 def get_user_input(prompt, default=None):
@@ -8,6 +9,13 @@ def get_user_input(prompt, default=None):
         prompt = f"{prompt}: "
     response = input(prompt).strip()
     return response if response else default
+
+def clean_title(filename):
+    # Remove season-episode pattern (e.g. S01E01, s01e01, S1E1)
+    title = re.sub(r'(?i)s\d{1,2}e\d{1,2}', '', filename)
+    # Replace dots with spaces and strip whitespace
+    title = title.replace('.', ' ').strip()
+    return title
 
 def get_filename_without_extension(media_part):
     path = media_part.file
@@ -66,7 +74,8 @@ def main():
 
     for episode in show.episodes():
         media_part = episode.media[0].parts[0]
-        new_title = get_filename_without_extension(media_part)
+        raw_title = get_filename_without_extension(media_part)
+        new_title = clean_title(raw_title)
         print(f'Renaming episode "{episode.title}" to "{new_title}"')
         episode.editTitle(new_title)
 
